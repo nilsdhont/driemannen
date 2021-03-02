@@ -1,0 +1,9 @@
+<resources>
+  <string name="app_name">driemannen</string>
+  <string name="action_settings">Settings</string>
+  <!-- Strings used for fragments for navigation -->
+  <string name="drinkCommand"></string>
+  <string name="nextActionCommand"></string>
+  <string name="diceLeft">diceLeft</string>
+  <string name="diceRight">diceRight</string>
+</resources>
