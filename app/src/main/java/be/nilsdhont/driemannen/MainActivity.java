@@ -2,13 +2,14 @@ package be.nilsdhont.driemannen;
 
 import static com.squareup.seismic.ShakeDetector.SENSITIVITY_LIGHT;
 
+import android.graphics.PixelFormat;
 import android.hardware.SensorManager;
+import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
-import android.view.View;
-import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -17,25 +18,53 @@ import java.util.Random;
 
 public class MainActivity extends AppCompatActivity implements ShakeDetector.Listener {
 
-  private boolean driemanRolled;
-  private boolean nietsmanRolled;
-//  https://github.com/fragalcer/3DDice/blame/master/app/src/main/java/com/example/franciscogallardo/a3ddice/MyGLRenderer.java
+  private GLSurfaceView glViewDice1;
+  private MyGLRenderer myGLRendererDice1;
+
+  private GLSurfaceView glViewDice2;
+  private MyGLRenderer myGLRendererDice2;
+
+  private TextView drinkCommandView;
+  private TextView nextActionCommand;
+
+  private final DriemanController driemanController = new DriemanController();
+
+  private boolean rolling = false;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
-    //    Toolbar toolbar = findViewById(R.id.toolbar);
-    //    setSupportActionBar(toolbar);
 
+    drinkCommandView = findViewById(R.id.drinkCommand);
+
+    glViewDice1 = findViewById(R.id.dice1);
+    myGLRendererDice1 = createDice3DArea(glViewDice1);
+    glViewDice2 = findViewById(R.id.dice2);
+    myGLRendererDice2 = createDice3DArea(glViewDice2);
+
+    nextActionCommand = findViewById(R.id.nextActionCommand);
+
+    createResetButton();
+    addShakeSensor();
+  }
+
+  private MyGLRenderer createDice3DArea(GLSurfaceView view) {
+    MyGLRenderer myGLRenderer = new MyGLRenderer(getApplicationContext());
+    view.getHolder().setFormat(PixelFormat.TRANSLUCENT);
+    view.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
+    view.getHolder().setFormat(PixelFormat.RGBA_8888);
+    view.setZOrderOnTop(true);
+    view.setRenderer(myGLRenderer);
+    return myGLRenderer;
+  }
+
+  private void createResetButton() {
     FloatingActionButton fab = findViewById(R.id.fab);
-    fab.setOnClickListener(
-        new View.OnClickListener() {
-          @Override
-          public void onClick(View view) {
-            clearAll();
-          }
-        });
+    fab.setOnClickListener(v -> clearAll());
+  }
+
+  private void addShakeSensor() {
     SensorManager sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
     ShakeDetector sd = new ShakeDetector(this);
     sd.setSensitivity(SENSITIVITY_LIGHT);
@@ -43,16 +72,9 @@ public class MainActivity extends AppCompatActivity implements ShakeDetector.Lis
   }
 
   private void clearAll() {
-    driemanRolled = false;
-    nietsmanRolled = false;
-    TextView drinkCommand = findViewById(R.id.drinkCommand);
-    drinkCommand.setText("");
-    TextView nextActionCommand = findViewById(R.id.nextActionCommand);
-    nextActionCommand.setText("");
-    ImageView diceLeft = findViewById(R.id.diceLeft);
-    diceLeft.setImageResource(R.drawable.dice1);
-    ImageView diceRight = findViewById(R.id.diceRight);
-    diceRight.setImageResource(R.drawable.dice1);
+    driemanController.reset();
+    clearDrinkCommand();
+    clearNextAction();
   }
 
   @Override
@@ -69,102 +91,50 @@ public class MainActivity extends AppCompatActivity implements ShakeDetector.Lis
   }
 
   private void rollDices() {
-    Random random = new Random();
-    int valueLeft = random.nextInt(6) + 1;
-    int valueRight = random.nextInt(6) + 1;
+    if (!rolling) {
+      rolling = true;
+      clearDrinkCommand();
+      clearNextAction();
 
-    updateDice(R.id.diceLeft, valueLeft);
-    updateDice(R.id.diceRight, valueRight);
-    updateDrinkCommand(valueLeft, valueRight);
+      Random random = new Random();
+      int diceThrow1 = random.nextInt(6) + 1;
+      int diceThrow2 = random.nextInt(6) + 1;
+
+      animateDice(myGLRendererDice1, diceThrow1);
+      animateDice(myGLRendererDice2, diceThrow2);
+
+      driemanController.roll(diceThrow1, diceThrow2);
+
+      (new Handler()).postDelayed(this::updateDrinkCommand, 5 * 1000);
+      (new Handler()).postDelayed(this::updateNextAction, 5 * 1000);
+      (new Handler()).postDelayed(() -> rolling = false, 6 * 1000);
+    }
   }
 
-  private void updateDrinkCommand(int valueLeft, int valueRight) {
-    int totalValue = valueLeft + valueRight;
-    boolean drink = false;
+  private void animateDice(MyGLRenderer myGLRenderer, int diceThrow) {
+    myGLRenderer.angleDice = 1080;
+    myGLRenderer.speedDice = 5;
+    myGLRenderer.fixX = 15;
+    myGLRenderer.fixY = 100;
+    myGLRenderer.fixZ = 30;
 
-    StringBuilder message = new StringBuilder();
-    if (driemanRolled && (valueLeft == 3 || valueRight == 3)) {
-      message.append("Drieman drinken!");
-      message.append("\n");
-      drink = true;
-    }
-
-    if (totalValue == 3) {
-      message.append("We hebben nen drieman bij!");
-      message.append("\n");
-      drink = true;
-      driemanRolled = true;
-    }
-    if (totalValue == 2) {
-      message.append("We hebben nen nietsman bij!");
-      message.append("\n");
-      drink = true;
-      nietsmanRolled = true;
-    }
-
-    if (totalValue == 7) {
-      message.append("Vorige drinken!");
-      message.append("\n");
-      drink = true;
-    }
-
-    if (totalValue == 9) {
-      message.append("Zelf drinken!");
-      message.append("\n");
-      drink = true;
-    }
-
-    if (totalValue == 11) {
-      message.append("Volgende drinken!");
-      message.append("\n");
-      drink = true;
-    }
-
-    if (valueLeft == valueRight) {
-      if (valueLeft == 1) {
-        message.append(valueLeft + " slok uitdelen!");
-        message.append("\n");
-      } else {
-        message.append(valueLeft + " slokken uitdelen!");
-        message.append("\n");
-        drink = true;
-      }
-    }
-
-    if (nietsmanRolled && !drink) {
-      message.append("Nietsman drinken!");
-    }
-
-    TextView drinkCommand = findViewById(R.id.drinkCommand);
-    drinkCommand.setText(message.toString());
-
-    TextView nextActionCommand = findViewById(R.id.nextActionCommand);
-    String nextAction = drink ? "Nog eens dobbelen!" : "Doorgeven!";
-    nextActionCommand.setText(nextAction);
+    myGLRenderer.diceNumberSetter(DiceNumber.fromInt(diceThrow));
   }
 
-  private void updateDice(int diceId, int diceValue) {
-    ImageView img = findViewById(diceId);
-    switch (diceValue) {
-      case 1:
-        img.setImageResource(R.drawable.dice1);
-        break;
-      case 2:
-        img.setImageResource(R.drawable.dice2);
-        break;
-      case 3:
-        img.setImageResource(R.drawable.dice3);
-        break;
-      case 4:
-        img.setImageResource(R.drawable.dice4);
-        break;
-      case 5:
-        img.setImageResource(R.drawable.dice5);
-        break;
-      case 6:
-        img.setImageResource(R.drawable.dice6);
-        break;
-    }
+  private void updateDrinkCommand() {
+    drinkCommandView.setText(driemanController.getDrinkMessage());
+  }
+
+  private void clearDrinkCommand() {
+    drinkCommandView.setText("");
+  }
+
+  private void updateNextAction() {
+    nextActionCommand.setText(driemanController.getNextAction());
+  }
+
+  private void clearNextAction() {
+    nextActionCommand.setText("");
   }
 
   @Override
@@ -187,5 +157,19 @@ public class MainActivity extends AppCompatActivity implements ShakeDetector.Lis
     }
 
     return super.onOptionsItemSelected(item);
+  }
+
+  @Override
+  protected void onPause() {
+    super.onPause();
+    glViewDice1.onPause();
+    glViewDice2.onPause();
+  }
+
+  @Override
+  protected void onResume() {
+    super.onResume();
+    glViewDice1.onResume();
+    glViewDice2.onResume();
   }
 }

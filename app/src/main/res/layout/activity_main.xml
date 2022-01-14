@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
+<androidx.constraintlayout.widget.ConstraintLayout
   xmlns:android="http://schemas.android.com/apk/res/android"
   xmlns:app="http://schemas.android.com/apk/res-auto"
   xmlns:tools="http://schemas.android.com/tools"
@@ -7,28 +7,83 @@
   android:layout_height="match_parent"
   tools:context=".MainActivity">
 
-<!--  <com.google.android.material.appbar.AppBarLayout-->
-<!--    android:layout_width="match_parent"-->
-<!--    android:layout_height="wrap_content"-->
-<!--    android:theme="@style/AppTheme.AppBarOverlay">-->
+  <TextView
+    android:id="@+id/drinkCommand"
+    android:textStyle="bold"
+    android:layout_width="400dp"
+    android:layout_height="200dp"
+    android:layout_marginTop="30dp"
+    android:layout_marginStart="5dp"
+    android:layout_marginEnd="5dp"
+    android:fontFamily="Trajan-Pro-Bold"
+    android:gravity="center"
+    android:text="@string/drinkCommand"
+    android:textColor="#000000"
+    android:textSize="50sp"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintHorizontal_bias="0.5"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent"
+    tools:text="@string/drinkCommand"/>
+  <TextView
+    android:id="@+id/nextActionCommand"
+    android:textStyle="bold"
+    android:layout_width="400dp"
+    android:layout_height="200dp"
+    android:layout_marginBottom="50dp"
+    android:layout_marginStart="5dp"
+    android:layout_marginEnd="5dp"
+    android:fontFamily="Trajan-Pro-Bold"
+    android:gravity="center"
+    android:text=""
+    android:textColor="#000000"
+    android:textSize="50sp"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintHorizontal_bias="0.5"
+    app:layout_constraintStart_toStartOf="parent"
+    tools:text=""/>
+  <android.opengl.GLSurfaceView
+    android:id="@+id/dice1"
+    android:layout_width="0dp"
+    android:layout_height="350dp"
+    android:layout_weight=".50"
+    android:layout_marginTop="5dp"
+    android:layout_marginBottom="5dp"
+    android:layout_marginStart="5dp"
+    android:color="#80000000"
+    android:gravity="center"
+    app:layout_constraintHorizontal_bias="0.5"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toStartOf="@id/dice2"
+    app:layout_constraintBottom_toTopOf="@id/nextActionCommand"
+    app:layout_constraintTop_toBottomOf="@id/drinkCommand"/>
 
-<!--    <androidx.appcompat.widget.Toolbar-->
-<!--      android:id="@+id/toolbar"-->
-<!--      android:layout_width="match_parent"-->
-<!--      android:layout_height="?attr/actionBarSize"-->
-<!--      android:background="?attr/colorPrimary"-->
-<!--      app:popupTheme="@style/AppTheme.PopupOverlay"/>-->
-
-<!--  </com.google.android.material.appbar.AppBarLayout>-->
-
+  <android.opengl.GLSurfaceView
+    android:id="@+id/dice2"
+    android:layout_width="0dp"
+    android:layout_height="350dp"
+    android:layout_weight=".50"
+    android:layout_marginTop="5dp"
+    android:layout_marginBottom="5dp"
+    android:layout_marginEnd="5dp"
+    android:color="#80000000"
+    android:gravity="center"
+    app:layout_constraintHorizontal_bias="0.5"
+    app:layout_constraintStart_toEndOf="@id/dice1"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintBottom_toTopOf="@id/nextActionCommand"
+    app:layout_constraintTop_toBottomOf="@id/drinkCommand"/>
   <com.google.android.material.floatingactionbutton.FloatingActionButton
     android:id="@+id/fab"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:layout_margin="@dimen/fab_margin"
+    android:layout_marginBottom="5dp"
+    android:layout_marginEnd="4dp"
     android:layout_gravity="bottom|end"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintEnd_toEndOf="parent"
     app:srcCompat="@android:drawable/ic_menu_close_clear_cancel"/>
 
-  <include layout="@layout/content_main"/>
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
